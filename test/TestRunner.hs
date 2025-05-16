@@ -8,7 +8,7 @@ import Test.Hspec.Runner (hspecWith, defaultConfig, Config(..))
 import qualified APISpec
 import qualified MathSpec
 import System.Environment (withArgs, lookupEnv)
-import System.Exit (exitWith, ExitCode(..))
+-- System.Exit not used
 import Control.Monad (when)
 
 -- | Configuration for test execution
@@ -57,9 +57,6 @@ main = do
   -- Configure Hspec
   let hspecCfg = defaultConfig
         { configFailFast = configFailFast' cfg
-        , configQuickCheckMaxSuccess = Just $ if configQuickMode cfg then 10 else 100
-        , configQuickCheckMaxSize = Just $ if configQuickMode cfg then 10 else 100
-        , configQuickCheckSeed = Nothing
         }
   
   -- Run tests
