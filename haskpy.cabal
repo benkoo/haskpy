@@ -19,22 +19,85 @@ common common-options
 
 library
   import:             common-options
-  hs-source-dirs:     src
-  exposed-modules:    HaskPy.Math
+  exposed-modules:    HaskPy.Math.Math
+                     ,HaskPy.Main
+  other-modules:      HaskPy.Math.Internal
   build-depends:      base >=4.17 && <4.20,
                      aeson >=2.0,
-                     text >=2.0,
-                     bytestring >=0.11.0.0,
-                     http-types >=0.12,
-                     wai-extra >=3.1,
-                     wai >=3.2,
-                     scotty >=0.12
+                     array,
+                     bytestring,
+                     directory,
+                     http-types,
+                     process,
+                     scotty,
+                     text,
+                     transformers,
+                     wai,
+                     wai-extra,
+                     hspec-expectations
+  hs-source-dirs:     src
+  default-language:   Haskell2010
+  default-extensions: OverloadedStrings
+                     , DeriveGeneric
+                     , DeriveAnyClass
+                     , TypeApplications
+                     , ScopedTypeVariables
+                     , FlexibleContexts
+                     , DeriveFunctor
+                     , DeriveFoldable
+                     , DeriveTraversable
+                     , DeriveDataTypeable
+                     , TypeSynonymInstances
+                     , FlexibleInstances
+                     , MultiParamTypeClasses
+                     , QuasiQuotes
+                     , TemplateHaskell
+                     , TupleSections
+                     , ViewPatterns
+                     , NoImplicitPrelude
+                     , RecordWildCards
+                     , LambdaCase
+                     , TypeOperators
+                     , DataKinds
+                     , ConstraintKinds
+                     , TypeFamilies
+                     , GADTs
+                     , StandaloneDeriving
+                     , GeneralizedNewtypeDeriving
+                     , DeriveLift
+                     , DerivingStrategies
+                     , DerivingVia
+                     , InstanceSigs
+                     , RankNTypes
+                     , TypeApplications
+                     , ScopedTypeVariables
+                     , AllowAmbiguousTypes
+                     , TypeInType
+                     , UndecidableInstances
+                     , CPP
+                     , PatternSynonyms
+                     , TemplateHaskellQuotes
+                     , StandaloneDeriving
+                     , DerivingStrategies
+                     , DerivingVia
+                     , InstanceSigs
+                     , RankNTypes
+                     , TypeApplications
+                     , ScopedTypeVariables
+                     , AllowAmbiguousTypes
+                     , TypeInType
+                     , UndecidableInstances
+                     , CPP
+                     , PatternSynonyms
+                     , TemplateHaskellQuotes
   ghc-options:        -Wall -O2
 
 executable haskpy
   import:             common-options
   main-is:            Main.hs
+  hs-source-dirs:     app
   build-depends:      base >=4.17 && <4.20,
+                     haskpy,
                      process >=1.6.0 && <1.7,
                      directory >=1.3.0.0,
                      scotty >=0.12,
@@ -44,20 +107,67 @@ executable haskpy
                      http-types >=0.12,
                      wai-extra >=3.1,
                      wai >=3.2,
-                     transformers >=0.5.0.0,
-                     scotty >=0.12
-  hs-source-dirs:     src
+                     transformers >=0.5.0.0
   ghc-options:        -Wall -O2
 
 test-suite haskpy-test
   import:             common-options
   type:               exitcode-stdio-1.0
-  main-is:            Spec.hs
+  main-is:            TestRunner.hs
   other-modules:      MathSpec
-                     , APISpec
+                     ,APISpec
+  hs-source-dirs:     test
+  build-depends:      base >=4.17 && <4.20,
+                     haskpy,
+                     hspec >= 2.10.0,
+                     hspec-expectations >= 0.8.4,
+                     QuickCheck >= 2.14.2,
+                     HUnit >= 1.6.2.0
+                     ,haskpy
+                     ,hspec
+                     ,hspec-expectations
+                     ,hspec-wai
+                     ,hspec-wai-json
+                     ,QuickCheck
+                     ,aeson
+                     ,bytestring
+                     ,text
+                     ,wai-extra
+                     ,wai
+                     ,http-types
+                     ,scotty
+                     ,transformers
+  -- Optimized for test speed
+  ghc-options:        -Wall -threaded -rtsopts -with-rtsopts=-N2 -O0
+  build-tool-depends: hspec-discover:hspec-discover >=2.0
+  default-language:   Haskell2010
+  default-extensions: OverloadedStrings
+                     , DeriveGeneric
+                     , DeriveAnyClass
+                     , TypeApplications
+                     , ScopedTypeVariables
+                     , FlexibleContexts
+                     , TypeSynonymInstances
+                     , FlexibleInstances
+                     , MultiParamTypeClasses
+                     , QuasiQuotes
+                     , TemplateHaskell
+  if impl(ghc >= 9.2)
+    ghc-options: -fdiagnostics-color=always
+  if impl(ghc >= 8.10)
+    ghc-options: -fdiagnostics-color=always
+
+-- Quick test suite with reduced parallelism and test count
+test-suite haskpy-test-quick
+  import:             common-options
+  type:               exitcode-stdio-1.0
+  main-is:            TestRunner.hs
+  other-modules:      MathSpec
+                     ,APISpec
   build-depends:      base >=4.17 && <4.20,
                      haskpy,
                      hspec >=2.10.0,
+                     hspec-expectations >=0.8.4,
                      hspec-wai >=0.11.0,
                      hspec-wai-json >=0.10.0,
                      QuickCheck >=2.14,
@@ -75,4 +185,21 @@ test-suite haskpy-test
                      wai,
                      wai-extra
   hs-source-dirs:     test
-  ghc-options:        -Wall -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:        -Wall -rtsopts -with-rtsopts=-N1 -O0 -DQUICK
+  build-tool-depends: hspec-discover:hspec-discover >=2.0
+  default-language:   Haskell2010
+  default-extensions: OverloadedStrings
+                     , DeriveGeneric
+                     , DeriveAnyClass
+                     , TypeApplications
+                     , ScopedTypeVariables
+                     , FlexibleContexts
+                     , TypeSynonymInstances
+                     , FlexibleInstances
+                     , MultiParamTypeClasses
+                     , QuasiQuotes
+                     , TemplateHaskell
+  if impl(ghc >= 9.2)
+    ghc-options: -fdiagnostics-color=always
+  if impl(ghc >= 8.10)
+    ghc-options: -fdiagnostics-color=always

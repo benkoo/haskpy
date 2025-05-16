@@ -1,11 +1,19 @@
 packages: .
 
+-- Enable tests by default
 tests: True
 
+-- Show test output in real-time
 test-show-details: streaming
 
+-- Common GHC options for all packages
 package *
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
 
+-- Configure the main package
 package haskpy
   tests: True
+  test-options: --show-details=streaming
+  test-show-details: streaming
+  -- Enable all test suites
+  test-suite: haskpy-test

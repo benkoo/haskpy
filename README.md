@@ -9,9 +9,10 @@ A demonstration of integrating Haskell and Python, featuring a web service that 
 
 - **Web Service**: A lightweight HTTP server built with Scotty that exposes Haskell functions
 - **Math Operations**: Basic arithmetic operations (add, subtract, multiply, divide)
-- **Fibonacci Sequence**: Calculate the nth Fibonacci number
+- **Optimized Fibonacci Algorithm**: Calculate the nth Fibonacci number using O(log n) matrix exponentiation
 - **Python Integration**: Example Python client to call Haskell functions
-- **Error Handling**: Proper error handling for invalid operations and edge cases
+- **Robust Error Handling**: Standardized error handling for invalid operations and edge cases
+- **Precision-aware Division**: Proper handling of floating-point division with special cases
 - **RESTful API**: Simple and intuitive API endpoints
 - **Cross-Platform**: Works on macOS, Windows, and Linux
 
@@ -114,7 +115,7 @@ Perform a mathematical operation.
 }
 ```
 
-**Example Response:**
+**Example Success Response:**
 ```json
 {
   "result": 30,
@@ -122,14 +123,22 @@ Perform a mathematical operation.
 }
 ```
 
+**Example Error Response:**
+```json
+{
+  "result": 0,
+  "statusMsg": "Invalid operation or division by zero"
+}
+```
+
 ### GET /fib/:n
 
-Get the nth Fibonacci number.
+Get the nth Fibonacci number using an optimized O(log n) algorithm.
 
 **Parameters:**
 - `n`: The index of the Fibonacci number to retrieve (non-negative integer)
 
-**Example Response:**
+**Example Success Response:**
 ```json
 {
   "result": 55,
@@ -137,7 +146,25 @@ Get the nth Fibonacci number.
 }
 ```
 
+**Example Error Response:**
+```json
+{
+  "result": 0,
+  "statusMsg": "n must be non-negative"
+}
+```
+
+**Performance Note:**
+The Fibonacci implementation uses matrix exponentiation for efficiency, allowing calculation of large Fibonacci numbers (up to F(10000) and beyond) in milliseconds.
+
 ## Development
+
+### Recent Improvements
+
+- **Optimized Fibonacci Algorithm**: Replaced recursive implementation with O(log n) matrix exponentiation
+- **Floating-Point Precision**: Enhanced division operation with epsilon checks for near-zero values
+- **Standardized Error Handling**: Unified error messages across all API endpoints for consistency
+- **Test Improvements**: Added approximate equality tests for floating-point operations
 
 ### Building the Project
 
@@ -412,21 +439,113 @@ which python3
    cabal build
    ```
 
-2. Run the example:
+2. Run the server:
    ```bash
    cabal run
    ```
+   This will start the web server on `http://localhost:3000`
 
-### Example Code
+## API Endpoints
 
-See `src/Main.hs` for examples of:
-- Running Python code from Haskell
-- Passing values between Haskell and Python
-- Using Python's standard library
-- Working with Python functions and data structures
+### Math Operations
 
-The example includes:
-- Simple Python print statements
+**POST /math**
+- Performs basic arithmetic operations
+- Request body:
+  ```json
+  {
+    "operation": "add|subtract|multiply|divide",
+    "x": number,
+    "y": number
+  }
+  ```
+- Example response:
+  ```json
+  {
+    "result": 30,
+    "statusMsg": "success"
+  }
+  ```
+
+### Fibonacci Sequence
+
+**GET /fib/:n**
+- Returns the nth Fibonacci number
+- Example: `GET /fib/10` returns:
+  ```json
+  {
+    "result": 55,
+    "statusMsg": "success"
+  }
+  ```
+
+## Development
+
+### Project Structure
+
+```
+haskpy/
+├── src/                  # Haskell source code
+│   ├── HaskPy/
+│   │   └── Math.hs     # Math functions
+│   └── Main.hs           # Web server and main application
+├── test/                # Test files
+│   ├── APISpec.hs       # API endpoint tests
+│   ├── MathSpec.hs      # Unit tests for math functions
+│   └── Spec.hs          # Test runner
+├── test_python_client.py # Python client tests
+├── haskpy.cabal         # Project configuration
+└── cabal.project        # Cabal project settings
+```
+
+### Running Tests
+
+There are two types of tests:
+
+1. **Haskell Unit Tests**: Test the core functionality
+2. **Python Integration Tests**: Test the web API
+
+To run all tests:
+
+```bash
+./run-tests.sh
+```
+
+#### Running Haskell Tests Only
+
+```bash
+cabal test --test-show-details=streaming
+```
+
+#### Running Python Tests Only
+
+First, make sure the server is running:
+
+```bash
+cabal run
+```
+
+Then in a separate terminal:
+
+```bash
+pytest -v test_python_client.py
+```
+
+### Code Formatting
+
+```bash
+fourmolu -i src/**/*.hs
+```
+
+### Test Coverage
+
+To generate a test coverage report:
+
+```bash
+cabal configure --enable-tests --enable-coverage
+cabal test --test-show-details=streaming
+hpc report haskpy-tests
+```
 - Math operations using Python's math library
 - String manipulation
 - List comprehensions
