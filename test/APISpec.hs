@@ -11,7 +11,7 @@ import qualified Test.Hspec.Wai as Wai
   )
 import Network.HTTP.Types (status400)
 import Network.Wai (Application)
-import Data.Aeson (encode, ToJSON)
+import Data.Aeson (encode)
 import qualified Data.ByteString.Lazy as LBS
 import Data.Int (Int64)
 import System.Environment (lookupEnv)
@@ -44,7 +44,7 @@ app = scottyApp $ do
       then do
         status status400
         json $ MathResponse 0 "n must be non-negative"
-      else json $ MathResponse (fib (fromIntegral n)) "success"
+      else json $ MathResponse (fib (fromIntegral n :: Integer)) "success"
   
   -- Math operation endpoint
   Scotty.post "/math" $ do
@@ -55,7 +55,7 @@ app = scottyApp $ do
           "multiply" -> Right $ multiply (x req) (y req)
           "divide" -> 
             if y req == 0 
-              then Left "Division by zero"
+              then Left ("Division by zero" :: String)
               else Right $ x req `div` y req
           _ -> Left "Invalid operation"
     

@@ -1,36 +1,31 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module HaskPy.Main where
 
-import Prelude hiding (readMaybe)
-import Control.Exception (try, SomeException)
-import qualified Control.Exception as E (catch, IOException, SomeException)
-import Data.Aeson (FromJSON, ToJSON, FromJSONKey, ToJSONKey, Value(String), withText, parseJSON)
-import Data.Maybe (Maybe(..))
-import Data.Either (Either(..))
-import Data.Int (Int)
-import Data.String (String)
+import qualified Prelude as P
+import Prelude hiding (div)
+import Control.Exception (try)
+import qualified Control.Exception as E (SomeException)
+import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
 import System.Exit (ExitCode(..))
-import System.IO (hPutStrLn, stderr, IO)
-import System.Process (readProcess, readProcessWithExitCode)
-import System.Directory (removeFile)
-import System.IO.Error (isDoesNotExistError)
-import Text.Read (readMaybe)
+import System.Process (readProcessWithExitCode)
 import Web.Scotty (scotty, middleware, get, post, html, json, jsonData, pathParam, ActionM)
 import qualified Web.Scotty as Scotty (status)
 import Network.HTTP.Types (status400)
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
-import HaskPy.Math.Math (add, subtract', multiply, divide, fib)
+import HaskPy.Math.Math (add, subtract', multiply)
 
 -- | Request for math operations
 data MathRequest = MathRequest
     { operation :: String  -- ^ Operation to perform: "add", "subtract", "multiply", or "divide"
     , x :: Int            -- ^ First operand
     , y :: Int            -- ^ Second operand
-    } deriving (Show, Generic)
+    } deriving (Generic)
+
+deriving instance Show MathRequest
 
 -- Explicit instances to avoid duplicate instance declarations
 instance FromJSON MathRequest
@@ -40,7 +35,9 @@ instance ToJSON MathRequest
 data MathResponse = MathResponse
     { result    :: Int     -- ^ Result of the operation
     , statusMsg :: String  -- ^ Status message
-    } deriving (Show, Generic)
+    } deriving (Generic)
+
+deriving instance Show MathResponse
 
 -- Explicit instance to avoid duplicate instance declarations
 instance ToJSON MathResponse
@@ -80,23 +77,25 @@ startServer = scotty 3000 $ do
         json $ MathResponse (multiply x' y') "success"
     
     get "/divide/:x/:y" $ do
-        x' <- pathParam "x" :: ActionM Double
-        y' <- pathParam "y" :: ActionM Double
-        case divide x' y' of
-            Left _ -> do
+        x' <- pathParam "x" :: ActionM Int
+        y' <- pathParam "y" :: ActionM Int
+        if y' == 0
+            then do
                 Scotty.status status400
                 json $ MathResponse 0 "Invalid operation or division by zero"
-            Right result ->
-                json $ MathResponse (floor result) "success"
+            else
+                json $ MathResponse (x' `P.div` y') "success"
     
     -- JSON API endpoint
     post "/math" $ do
         req <- jsonData :: ActionM MathRequest
         let result = case operation req of
-                "add"      -> Right $ fromIntegral (add (x req) (y req)) :: Either String Double
-                "subtract" -> Right $ fromIntegral (subtract' (x req) (y req)) :: Either String Double
-                "multiply" -> Right $ fromIntegral (multiply (x req) (y req)) :: Either String Double
-                "divide"   -> divide (fromIntegral (x req) :: Double) (fromIntegral (y req) :: Double)
+                "add"      -> Right $ fromIntegral (add (x req) (y req)) :: Either String Int
+                "subtract" -> Right $ fromIntegral (subtract' (x req) (y req)) :: Either String Int
+                "multiply" -> Right $ fromIntegral (multiply (x req) (y req)) :: Either String Int
+                "divide"   -> case y req of
+                                0 -> Left "Division by zero"
+                                _ -> Right $ x req `P.div` y req
                 _          -> Left "Invalid operation"
         
         case result of
@@ -105,15 +104,15 @@ startServer = scotty 3000 $ do
                 -- Standardize error message for tests
                 json $ MathResponse 0 "Invalid operation or division by zero"
             Right res ->
-                json $ MathResponse (floor res) "success"
+                json $ MathResponse res "success"
 
 -- | Run a Python command and return its output
 runPython :: String -> [String] -> IO (Either String String)
 runPython cmd args = do
-    (exitCode, stdout, stderr) <- readProcessWithExitCode "python3" (cmd:args) ""
+    (exitCode, stdout, errOutput) <- readProcessWithExitCode "python3" (cmd:args) ""
     return $ case exitCode of
-        ExitSuccess   -> Right stdout
-        ExitFailure _ -> Left stderr
+        ExitSuccess -> Right stdout
+        ExitFailure _ -> Left errOutput
 
 -- Example usage of Python integration
 pythonExample :: IO ()

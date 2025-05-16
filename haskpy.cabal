@@ -72,7 +72,7 @@ library
                      , TypeApplications
                      , ScopedTypeVariables
                      , AllowAmbiguousTypes
-                     , TypeInType
+                     , PolyKinds
                      , UndecidableInstances
                      , CPP
                      , PatternSynonyms
@@ -85,7 +85,6 @@ library
                      , TypeApplications
                      , ScopedTypeVariables
                      , AllowAmbiguousTypes
-                     , TypeInType
                      , UndecidableInstances
                      , CPP
                      , PatternSynonyms
