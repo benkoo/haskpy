@@ -1,1 +1,11 @@
 packages: .
+
+tests: True
+
+test-show-details: streaming
+
+package *
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+
+package haskpy
+  tests: True

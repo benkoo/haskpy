@@ -18,6 +18,7 @@ import Web.Scotty (scotty, middleware, get, post, html, json, jsonData, pathPara
 import qualified Web.Scotty as Scotty (status)
 import Network.HTTP.Types (status400)
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
+import HaskPy.Math (add, subtract', multiply, divide, fib)
 
 -- Data types for our API
 data MathRequest = MathRequest
@@ -35,20 +36,6 @@ data MathResponse = MathResponse
     } deriving (Show, Generic)
 
 instance ToJSON MathResponse
-
--- Our Haskell functions that we want to expose to Python
-add :: Double -> Double -> Double
-add a b = a + b
-
-subtract' :: Double -> Double -> Double
-subtract' a b = a - b
-
-multiply :: Double -> Double -> Double
-multiply a b = a * b
-
-divide :: Double -> Double -> Maybe Double
-divide _ 0 = Nothing
-divide a b = Just (a / b)
 
 -- Web server setup
 startServer :: IO ()
@@ -89,11 +76,6 @@ startServer = scotty 3000 $ do
                 Scotty.status status400
                 json $ MathResponse 0 "n must be non-negative"
             else json $ MathResponse (fromIntegral $ fib n) "success"
-
--- Pure Haskell function for Fibonacci
-fib :: Int -> Integer
-fib n = fibs !! n
-  where fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
 
 -- | Run a Python command and return its output
 runPython :: String -> [String] -> IO String

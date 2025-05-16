@@ -147,14 +147,51 @@ cabal build
 
 ### Running Tests
 
+There are two types of tests:
+
+1. **Haskell Unit Tests**: Test the core functionality
+2. **Python Integration Tests**: Test the web API
+
+To run all tests:
+
 ```bash
-cabal test
+./run-tests.sh
+```
+
+#### Running Haskell Tests Only
+
+```bash
+cabal test --test-show-details=streaming
+```
+
+#### Running Python Tests Only
+
+First, make sure the server is running:
+
+```bash
+cabal run
+```
+
+Then in a separate terminal:
+
+```bash
+pytest -v test_python_client.py
 ```
 
 ### Code Formatting
 
 ```bash
 fourmolu -i src/**/*.hs
+```
+
+### Test Coverage
+
+To generate a test coverage report:
+
+```bash
+cabal configure --enable-tests --enable-coverage
+cabal test --test-show-details=streaming
+hpc report haskpy-tests
 ```
 
 ## Contributing
