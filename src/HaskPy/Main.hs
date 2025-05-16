@@ -5,7 +5,8 @@
 module HaskPy.Main where
 
 import qualified Prelude as P
-import Prelude hiding (div)
+import Prelude hiding (div, fromIntegral)
+import Prelude (fromIntegral)
 import Control.Exception (try)
 import qualified Control.Exception as E (SomeException)
 import Data.Aeson (FromJSON, ToJSON)
@@ -16,7 +17,7 @@ import Web.Scotty (scotty, middleware, get, post, html, json, jsonData, pathPara
 import qualified Web.Scotty as Scotty (status)
 import Network.HTTP.Types (status400)
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
-import HaskPy.Math.Math (add, subtract', multiply)
+import HaskPy.Math.Math (add, subtract', multiply, fib)
 
 -- | Request for math operations
 data MathRequest = MathRequest
@@ -56,6 +57,7 @@ startServer = scotty 3000 $ do
             , "<li>GET /subtract/:x/:y - Subtract y from x</li>"
             , "<li>GET /multiply/:x/:y - Multiply two numbers</li>"
             , "<li>GET /divide/:x/:y - Divide x by y</li>"
+            , "<li>GET /fib/:n - Calculate the nth Fibonacci number</li>"
             , "<li>POST /math - Perform math operation with JSON body</li>"
             , "</ul>"
             ]
@@ -85,6 +87,16 @@ startServer = scotty 3000 $ do
                 json $ MathResponse 0 "Invalid operation or division by zero"
             else
                 json $ MathResponse (x' `P.div` y') "success"
+    
+    -- Fibonacci endpoint
+    get "/fib/:n" $ do
+        n' <- pathParam "n" :: ActionM Int
+        if n' < 0
+            then do
+                Scotty.status status400
+                json $ MathResponse 0 "must be non-negative"
+            else
+                json $ MathResponse (fromIntegral (fib n' :: Integer)) "success"
     
     -- JSON API endpoint
     post "/math" $ do
