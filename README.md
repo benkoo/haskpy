@@ -1,5 +1,8 @@
 # HaskPy - Haskell-Python Integration
 
+[![Haskell CI](https://github.com/benkoo/haskpy/actions/workflows/haskell-ci.yml/badge.svg)](https://github.com/benkoo/haskpy/actions/workflows/haskell-ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A demonstration of integrating Haskell and Python, featuring a web service that exposes Haskell functions to be called from Python.
 
 ## Features
@@ -9,13 +12,25 @@ A demonstration of integrating Haskell and Python, featuring a web service that 
 - **Fibonacci Sequence**: Calculate the nth Fibonacci number
 - **Python Integration**: Example Python client to call Haskell functions
 - **Error Handling**: Proper error handling for invalid operations and edge cases
+- **RESTful API**: Simple and intuitive API endpoints
+- **Cross-Platform**: Works on macOS, Windows, and Linux
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [API Reference](#api-reference)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Prerequisites
 
 - [GHC](https://www.haskell.org/ghc/) (Glasgow Haskell Compiler) 9.6.7 or later
 - [Cabal](https://www.haskell.org/cabal/) (Haskell build tool)
 - Python 3.6 or later
-- Python `requests` library
+- Python `requests` library (for the example client)
 
 ## Installation
 
@@ -46,9 +61,121 @@ sudo apt-get update
 sudo apt-get install -y haskell-platform
 ```
 
-### 2. Install Python Dependencies
+### 2. Clone the Repository
 
 ```bash
+git clone https://github.com/benkoo/haskpy.git
+cd haskpy
+```
+
+### 3. Install Python Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Usage
+
+### Starting the Server
+
+```bash
+cabal run
+```
+
+The server will start on `http://localhost:3000`
+
+### Using the Python Client
+
+```python
+import requests
+
+# Example 1: Call math endpoint
+response = requests.post('http://localhost:3000/math', 
+    json={"operation": "add", "x": 10, "y": 20})
+print("Add: ", response.json())
+
+# Example 2: Call Fibonacci endpoint
+response = requests.get('http://localhost:3000/fib/10')
+print("10th Fibonacci number:", response.json())
+```
+
+## API Reference
+
+### POST /math
+
+Perform a mathematical operation.
+
+**Request Body:**
+```json
+{
+  "operation": "add|subtract|multiply|divide",
+  "x": number,
+  "y": number
+}
+```
+
+**Example Response:**
+```json
+{
+  "result": 30,
+  "statusMsg": "success"
+}
+```
+
+### GET /fib/:n
+
+Get the nth Fibonacci number.
+
+**Parameters:**
+- `n`: The index of the Fibonacci number to retrieve (non-negative integer)
+
+**Example Response:**
+```json
+{
+  "result": 55,
+  "statusMsg": "success"
+}
+```
+
+## Development
+
+### Building the Project
+
+```bash
+cabal build
+```
+
+### Running Tests
+
+```bash
+cabal test
+```
+
+### Code Formatting
+
+```bash
+fourmolu -i src/**/*.hs
+```
+
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [Scotty](https://hackage.haskell.org/package/scotty) - A Haskell web framework
+- [Aeson](https://hackage.haskell.org/package/aeson) - Fast JSON parsing and encoding
+- [Stack](https://docs.haskellstack.org/) - The Haskell Tool Stack
 pip install requests
 ```
 
